@@ -1,14 +1,13 @@
 module;
 
-#include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstdint>
-#include <iostream>
+#include <set>
 #include <numeric>
 #include <optional>
 #include <random>
 #include <vector>
+#include <iostream>
 
 export module cards;
 
@@ -81,13 +80,15 @@ namespace cards
 
     export const struct card JOKER(CARD_JOKER, std::nullopt);
 
-    export class deck
+    typedef std::multiset<card> hand;
+
+    export class pile
     {
-    public:
+    private:
         std::vector<card> cards;
-        std::vector<card> discard;
+
     public:
-        deck(unsigned num_decks = 1)
+        pile(unsigned num_decks = 1)
         {
             assert(num_decks > 0);
 
@@ -107,8 +108,6 @@ namespace cards
 
         void shuffle(void)
         {
-            cards.insert(cards.end(), discard.begin(), discard.end());
-
             std::random_device rdev;
             std::mt19937 gen(rdev());
             std::uniform_int_distribution<> dist(0, cards.size() - 1); // bounds are inclusive
@@ -128,18 +127,10 @@ namespace cards
             return c;
         }
 
-        cards::card draw_one_from_discard(void)
-        {
-            assert(!discard.empty());
-            card c = discard.back();
-            discard.pop_back();
-            return c;
-        }
-
         // Replaces c at the 'top' of discard pile
         void replace(card c)
         {
-            discard.push_back(c);
+            cards.push_back(c);
         }
 
         std::vector<card> deal(unsigned n)

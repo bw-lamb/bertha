@@ -1,42 +1,40 @@
+module;
+
 #include <iostream>
+#include <set>
+#include <vector>
 
+module main;
 import cards;
-import player;
+import levels;
 
-int main()
-{
-    cards::deck d(1);
-    d.shuffle();
+using namespace game::levels;
 
-    for(const auto &c : d.cards)
+void printvec(std::vector<int> vec)
     {
-        std::cout << c << ' ';
+        std::cout << "{ ";
+            for(const auto& v : vec)
+            {
+                std::cout << v << ' '; 
+            }
+            std::cout << "}\n";
     }
-    std::cout << std::endl;
 
-    game::player p1;
-    game::player p2;
-
-    p1.hand = d.deal(5);
-    p2.hand = d.deal(5);
-
-    for(const auto &c : p1.hand)
+    int main()
     {
-        std::cout << c << ' ';
-    }
-    std::cout << std::endl;
+        std::multiset<int> s{1, 1, 1, 1, 2, 4, 4, 4, 5, 6, 7};
+        auto [res, s2] = has_all({has_nkind, has_nrun}, {4, 3}, s);
 
-    for(const auto &c : p2.hand)
-    {
-        std::cout << c << ' ';
-    }
-    std::cout << std::endl;
-    
-    for(const auto &c : d.cards)
-    {
-        std::cout << c << ' ';
-    }
-    std::cout << std::endl;
+        for(const auto& v : res.value())
+        {
+            printvec(v);
+        }
 
-    return 0;
-}
+        std::cout << "{ ";
+            for(const auto& v : s2)
+            {
+                std::cout << v << ' '; 
+            }
+            std::cout << "}\n";
+        return 0;
+    }
