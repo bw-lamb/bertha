@@ -12,7 +12,7 @@ module;
 export module cards;
 
 template<size_t L>
-consteval std::array<uint8_t, L> make_seq()
+consteval std::array<uint8_t, L> static_seq()
 {
     std::array<uint8_t, L> seq;
     std::iota(seq.begin(), seq.end(), 0);
@@ -49,9 +49,9 @@ namespace cards
         NUM_SUITS
     };
 
-    export constexpr std::array<uint8_t, NUM_REG_CARDS> CARD_VALS = make_seq<NUM_REG_CARDS>();
+    export constexpr std::array<uint8_t, NUM_REG_CARDS> CARD_VALS = static_seq<NUM_REG_CARDS>();
     static constexpr std::array<char, NUM_REG_CARDS> CARD_VAL_REPR{'J', 'A', '2', '3', '4', '5', '6', '7', '8', '9', 'X', 'J', 'Q', 'K'};
-    export constexpr std::array<uint8_t, NUM_SUITS> CARD_SUITS = make_seq<NUM_SUITS>();
+    export constexpr std::array<uint8_t, NUM_SUITS> CARD_SUITS = static_seq<NUM_SUITS>();
     static constexpr std::array<uint8_t, NUM_SUITS> CARD_SUIT_REPR{'A', 'D', 'C', 'H'};
  
     export struct card
@@ -78,9 +78,40 @@ namespace cards
         return os;
     }
 
+    export inline bool operator<(const card&lhs, const card& rhs)
+    {
+        return lhs.val < rhs.val;
+    }
+
     export const struct card JOKER(CARD_JOKER, std::nullopt);
 
-    typedef std::multiset<card> hand;
+    export struct hand
+    {
+        std::multiset<card> cards;
+    
+        hand() = default;
+
+        hand(std::vector<card> init)
+        {
+            cards = {};
+
+            for(auto& v : init)
+                cards.insert(v);
+        }
+
+        std::multiset<card> get_by_suit(int suit)
+        {
+            std::multiset<card> s;
+
+            for(auto& c : cards)
+            {
+                if(c.suit == suit)
+                    s.insert(c);
+            }
+
+            return s;
+        }
+    };
 
     export class pile
     {
@@ -128,23 +159,25 @@ namespace cards
         }
 
         // Replaces c at the 'top' of discard pile
-        void replace(card c)
+        void place(card c)
         {
             cards.push_back(c);
         }
 
-        std::vector<card> deal(unsigned n)
+        hand deal(unsigned n)
         {
             assert(n > 0 && n <= cards.size());
-            std::vector<card> hand;
+            std::vector<card> vec;
 
             for(auto i = 0; i < n; i++)
             {
-                hand.push_back(cards.back());
+                vec.push_back(cards.back());
                 cards.pop_back();
             }
 
-            return hand;
+            hand h(vec);
+
+            return h;
         }
     };
 }

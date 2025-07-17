@@ -34,7 +34,7 @@ namespace game::levels
         return {kind, elements};
     }
 
-    export std::pair<std::optional<std::vector<int>>, std::multiset<int>> has_nrun(unsigned n, std::multiset<int>& elements)
+    export std::pair<std::optional<std::vector<int>>, std::multiset<int>> has_nrun(unsigned n, std::multiset<int> elements)
     {
         std::vector<int> run;
         for(int i = 0; i < 10; i++)
