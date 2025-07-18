@@ -4,6 +4,10 @@ function Card.__eq(c1, c2)
     return c1.val == c2.val and c1.suit == c2.suit
 end
 
+function Card.__lt(c1, c2)
+    return c1.val < c2.val
+end
+
 function Card:new(val, suit)
     local c = {val=val, suit=suit}
     setmetatable(c, self)
@@ -51,9 +55,8 @@ function Hand:all_with_val(val)
 
     local matches = {}
 
-    for _, card in ipairs(self) do
+    for _, card in pairs(self) do
         if card["val"] == val then
-            card:print(); print()
             table.insert(matches, card)
         end
     end
@@ -71,15 +74,18 @@ function Hand:has_nkind(num)
     for i = 1, 13 do
         kind = self:all_with_val(i)
 
-        if #kind > num then
+        io.write(string.format("Trying to find " .. num .. " of a kind with " .. i .. "\n"))
+        for _,v in pairs(kind) do v:print() end
+        print()
+
+        if #kind >= num then
             for j=1,num do
                 self:remove(kind[j])
             end
 
-            for j=#kind, num, -1 do
+            for j=#kind, num+1, -1 do
                 table.remove(kind, j)
             end
-
             do return kind end
         else
             kind = {}
@@ -89,7 +95,59 @@ function Hand:has_nkind(num)
     return nil
 end
 
-init = {Card:new(1, 1), Card:new(2, 1), Card:new(2, 2), Card:new(2,1), Card:new(3, 1), Card:new(4, 1)}
+function Hand:has_nrun(num)
+    assert(num > 0, 'Hand:has_nrun - "num" is not an integer greater than zero.')
+
+    local run = {}
+
+    for i=1, 13 do
+        for j=0, num - 1 do
+            local x = self:all_with_val(i+j)
+
+            if x then
+                table.insert(run, x[1])
+            else
+                run = {}
+            end
+        end
+
+        if #run >= num then
+            for j=1,num do
+                self:remove(run[j])
+            end
+
+            for j=#run, num+1, -1 do
+                table.remove(run, j)
+            end
+            do return run end
+        else
+            run = {}
+        end
+    end
+
+    return nil
+end
+
+function Hand:level_one()
+    local backup = Hand:new(self, self)
+
+    local kind = self:has_nkind(3)
+
+    if not kind then
+        self = backup
+        do return nil end
+    end
+
+    local run = self:has_nrun(4)
+    if not run then
+        self = backup
+        do return nil end
+    end
+
+    return {kind, run}
+end
+
+init = {Card:new(7, 1), Card:new(2, 1), Card:new(2, 2), Card:new(2,3), Card:new(3, 1), Card:new(4, 1), Card:new(5, 1)}
 
 --@type=Hand
 h = Hand:new({}, init)
@@ -97,21 +155,20 @@ h = Hand:new({}, init)
 for _,v in pairs(h) do v.print(v) end
 print()
 
--- BROKEN
-kind = h:has_nkind(3)
+res = h:level_one()
 
 print("\nAFTER\n")
 
-if kind == nil then
-    print("<No Kind>")
+if res == nil then
+    print("Failed")
 else
-    for _, v in pairs(kind) do
-        v:print()
+    for _, v in pairs(res) do
+        for _,c in pairs(res) do 
+            v:print()
+        end
     end
     print()
 end
 
 for _,v in pairs(h) do v:print() end
 print()
-
-print(Card:new(1, 1) == Card:new(1, 3))
